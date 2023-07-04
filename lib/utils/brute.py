@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2022 sqlmap developers (https://sqlmap.org/)
+Copyright (c) 2006-2023 sqlmap developers (https://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
 from __future__ import division
 
-import logging
 import time
 
 from lib.core.common import Backend
@@ -66,7 +65,7 @@ def tableExists(tableFile, regex=None):
     if kb.choices.tableExists is None and not any(_ for _ in kb.injection.data if _ not in (PAYLOAD.TECHNIQUE.TIME, PAYLOAD.TECHNIQUE.STACKED)) and not conf.direct:
         warnMsg = "it's not recommended to use '%s' and/or '%s' " % (PAYLOAD.SQLINJECTION[PAYLOAD.TECHNIQUE.TIME], PAYLOAD.SQLINJECTION[PAYLOAD.TECHNIQUE.STACKED])
         warnMsg += "for common table existence check"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         message = "are you sure you want to continue? [y/N] "
         kb.choices.tableExists = readInput(message, default='N', boolean=True)
@@ -160,7 +159,7 @@ def tableExists(tableFile, regex=None):
         except KeyboardInterrupt:
             warnMsg = "user aborted during table existence "
             warnMsg += "check. sqlmap will display partial output"
-            logger.warn(warnMsg)
+            logger.warning(warnMsg)
 
         clearConsoleLine(True)
         dataToStdout("\n")
@@ -169,7 +168,7 @@ def tableExists(tableFile, regex=None):
             warnMsg = "no table(s) found"
             if conf.db:
                 warnMsg += " for database '%s'" % conf.db
-            logger.warn(warnMsg)
+            logger.warning(warnMsg)
         else:
             for item in threadData.shared.files:
                 if conf.db not in kb.data.cachedTables:
@@ -190,7 +189,7 @@ def columnExists(columnFile, regex=None):
     if kb.choices.columnExists is None and not any(_ for _ in kb.injection.data if _ not in (PAYLOAD.TECHNIQUE.TIME, PAYLOAD.TECHNIQUE.STACKED)) and not conf.direct:
         warnMsg = "it's not recommended to use '%s' and/or '%s' " % (PAYLOAD.SQLINJECTION[PAYLOAD.TECHNIQUE.TIME], PAYLOAD.SQLINJECTION[PAYLOAD.TECHNIQUE.STACKED])
         warnMsg += "for common column existence check"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
 
         message = "are you sure you want to continue? [y/N] "
         kb.choices.columnExists = readInput(message, default='N', boolean=True)
@@ -281,7 +280,7 @@ def columnExists(columnFile, regex=None):
     except KeyboardInterrupt:
         warnMsg = "user aborted during column existence "
         warnMsg += "check. sqlmap will display partial output"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
     finally:
         kb.bruteMode = False
 
@@ -290,7 +289,7 @@ def columnExists(columnFile, regex=None):
 
     if not threadData.shared.files:
         warnMsg = "no column(s) found"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
     else:
         columns = {}
 
@@ -387,24 +386,20 @@ def fileExists(pathFile):
             kb.locks.io.release()
 
     try:
-        pushValue(logger.getEffectiveLevel())
-        logger.setLevel(logging.CRITICAL)
-
         runThreads(conf.threads, fileExistsThread, threadChoice=True)
     except KeyboardInterrupt:
         warnMsg = "user aborted during file existence "
         warnMsg += "check. sqlmap will display partial output"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
     finally:
         kb.bruteMode = False
-        logger.setLevel(popValue())
 
     clearConsoleLine(True)
     dataToStdout("\n")
 
     if not threadData.shared.files:
         warnMsg = "no file(s) found"
-        logger.warn(warnMsg)
+        logger.warning(warnMsg)
     else:
         retVal = threadData.shared.files
 

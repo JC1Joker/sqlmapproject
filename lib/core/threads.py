@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2022 sqlmap developers (https://sqlmap.org/)
+Copyright (c) 2006-2023 sqlmap developers (https://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
 from __future__ import print_function
 
 import difflib
+import sqlite3
 import threading
 import time
 import traceback
@@ -154,15 +155,19 @@ def runThreads(numThreads, threadFunction, cleanupFunction=None, forwardExceptio
 
             if numThreads == 1:
                 warnMsg = "running in a single-thread mode. This could take a while"
-                logger.warn(warnMsg)
+                logger.warning(warnMsg)
 
         if numThreads > 1:
             if startThreadMsg:
                 infoMsg = "starting %d threads" % numThreads
                 logger.info(infoMsg)
         else:
-            _threadFunction()
-            return
+            try:
+                _threadFunction()
+            except (SqlmapUserQuitException, SqlmapSkipTargetException):
+                pass
+            finally:
+                return
 
         kb.multiThreadMode = True
 
@@ -223,16 +228,19 @@ def runThreads(numThreads, threadFunction, cleanupFunction=None, forwardExceptio
         if conf.get("verbose") > 1 and isinstance(ex, SqlmapValueException):
             traceback.print_exc()
 
-    except:
+    except Exception as ex:
         print()
 
         if not kb.multipleCtrlC:
-            from lib.core.common import unhandledExceptionMessage
+            if isinstance(ex, sqlite3.Error):
+                raise
+            else:
+                from lib.core.common import unhandledExceptionMessage
 
-            kb.threadException = True
-            errMsg = unhandledExceptionMessage()
-            logger.error("thread %s: %s" % (threading.currentThread().getName(), errMsg))
-            traceback.print_exc()
+                kb.threadException = True
+                errMsg = unhandledExceptionMessage()
+                logger.error("thread %s: %s" % (threading.currentThread().getName(), errMsg))
+                traceback.print_exc()
 
     finally:
         kb.multiThreadMode = False
